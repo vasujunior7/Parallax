@@ -1,0 +1,6 @@
+[submodule "vendor/block-sparse-featurizer"]
+	path = vendor/block-sparse-featurizer
+	url = https://github.com/goodfire-ai/block-sparse-featurizer.git
+[submodule "vendor/sae-manifold"]
+	path = vendor/sae-manifold
+	url = https://github.com/goodfire-ai/sae-manifold.git
