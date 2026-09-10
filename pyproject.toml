@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "parallax"
+version = "0.1.0"
+description = "Inspection service that refuses to answer when it should not"
+requires-python = ">=3.10"
+dependencies = [
+    # Pinned: the pipeline depends on LightGlue/ALIKED/DISK, which are OpenCV 5 only.
+    "opencv-python==5.0.0.93",
+    "numpy>=2.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/parallax"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["slow: needs ONNX weights (downloads on first run)"]

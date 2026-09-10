@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# Environments
+.venv/
+venv/
+
+# Datasets — VisA is ~10k images, fetched by the ingest step, never committed
+data/
+
+# Secrets - never commit
+.env
+.env.*
+!.env.example
