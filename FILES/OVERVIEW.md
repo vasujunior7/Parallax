@@ -32,12 +32,18 @@ target almost no team will aim at deliberately.
 benchmark against a baseline, document it). If the pipeline is already OpenCV-heavy it is roughly five days of
 work for $1,000, and the same evidence feeds the 10% cloud-delivery line in the Overall rubric.
 
+**Why COOL is now also grant-gated.** COOL runs only on Graviton, which runs only on AWS, and we have no AWS
+account today. The build therefore targets hardware we own — a DGX-1 node with one V100 32 GB pinned — and the
+entire Arm path is deferred to a cloud port that happens only if the compute grant lands. Nothing scoring on
+the Overall or Agentic Vision rubrics depends on it. See `parallax_architecture.md` Sections 3 and 3b.
+
 ---
 
 ## What we are building
 
-**Parallax** — a cloud inspection service whose distinguishing feature is that it refuses to answer when it
-should not.
+**Parallax** — an inspection service whose distinguishing feature is that it refuses to answer when it
+should not. It runs on our own GPU today and is portable to the cloud; the refusal behaviour is the product
+either way.
 
 Every other entry will build something that detects defects. Nothing will detect **its own unreliability** —
 which is the actual reason industrial vision systems fail to ship. A deployed system meets unfamiliar lighting,
@@ -53,7 +59,7 @@ an unexpected pose, a new supplier's finish, and returns a confident verdict any
     align to golden reference -> difference -> segment -> measure
     |
     v
-  verdict  +  frozen DINOv2 + probe: "is this frame like what I was validated on?"
+  verdict  +  frozen DINOv3 + probe: "is this frame like what I was validated on?"
     |
     v
   THAT SCORE selects the next action:
@@ -104,13 +110,28 @@ binary into a dial, and nobody else in the field will report it.
 
 ## The Goodfire component, and its fallback
 
-The confidence signal comes from a frozen **DINOv2** backbone with a lightweight probe trained on its patch
+The confidence signal comes from a frozen **DINOv3** backbone with a lightweight probe trained on its patch
 activations. Both are in the build; the linear probe is simply built first:
 
 1. **Linear probe** — the floor. Roughly one day. Near-certain to work. Sufficient to run the entire agent loop.
-2. **Block-Sparse Featurizer** (Goodfire, MIT licence) — the real signal. A BSF block reports both *how strongly* a
-   concept is present and *where within that concept* the activation sits, so the escalation UI can say "this is
-   the cracked end of the seam manifold" rather than just "low confidence."
+2. **Block-Sparse Featurizer** — the real signal. A BSF block reports both *how strongly* a concept is present
+   and *where within that concept* the activation sits, so the escalation UI can say "this is the cracked end
+   of the seam manifold" rather than just "low confidence." We use Goodfire's reference implementation,
+   <https://github.com/goodfire-ai/block-sparse-featurizer> (MIT), pinned at commit `219f121e` — it ships the
+   three featurizer variants and a trainer, but **no pretrained featurizers**, so training one is our work.
+   Its `bsf.data` helper targets DINOv3 and we run that same backbone, so the shipped `pos_mean.npy` and the
+   published results apply to us directly. See `parallax_architecture.md` 4C.
+
+**The two papers this rests on, and the one result that matters most.**
+
+- *Structuring Sparsity: Block-Sparse Featurizers Capture Visual Concept Manifolds* (arXiv:2606.25234) — the
+  BSF paper. Concepts come out **2-4 dimensional**, which fixes our `group_size`. And it recovers **shadow and
+  lighting manifolds** from DINO features. That is the nuisance variable that breaks golden-reference
+  differencing, so our confidence signal is aimed at the failure we actually have, not a generic one.
+- *Do Sparse Autoencoders Capture Concept Manifolds?* (arXiv:2604.28119) — the SAE side. SAEs fragment
+  manifolds across atoms (**dilution**), which is why no single SAE feature answers "is this lighting
+  familiar?" Its code (<https://github.com/goodfire-ai/sae-manifold>, MIT) gives us the SAE baseline we
+  measure against, so beating it is our result rather than a borrowed claim.
 
 **BSF earns its place two ways, and only one of them is a bet.** As a confidence signal it may or may not beat
 the linear probe on out-of-distribution separation — that is the open question. As the *explanation surface for
@@ -133,7 +154,9 @@ A measured negative result is still a result, and the rules require evaluation e
 | Metric claims we cannot back | VisA has no intrinsics; we use a per-class scale factor and reserve full calibration for the live demo path, stated explicitly |
 | Deformable parts break alignment | Scope align-and-difference to VisA's rigid classes; name the food classes as a stated limitation |
 | Dataset licence conflict | VisA (CC BY 4.0), not MVTec AD (CC BY-NC-SA, conflicts with the licence granted to OpenCV/AWS) |
-| Credits will not fund always-on GPU | Warm Lambda/S3/CloudFront front door; pipeline instances on demand; live screen-share demo is permitted |
+| No AWS account; credits may not land | The whole build runs on our own DGX-1 (one V100 32 GB pinned). AWS is a documented Phase-2 port, not a dependency — only the COOL benchmark is lost if credits never arrive |
+| Shared DGX, other tenants on the box | Pipeline pinned to `CUDA_VISIBLE_DEVICES=0`; VRAM budget sized for a single 32 GB card, with the planner model evictable to host CPU |
+| V100 is Volta (SM 7.0) | No BF16 and no FlashAttention-2 on this generation. fp16 autocast and the PyTorch SDPA memory-efficient backend are chosen up front; the `sm_70` build is pinned and asserted at startup |
 
 ---
 
@@ -155,7 +178,8 @@ Full week-by-week schedule is in `proposal.md`, Section 10.
 - [ ] Register the team on Devpost
 - [ ] Confirm with competition@opencv.org that the grant proposal window is still open at this date
 - [ ] Ask the organisers about the 50-team versus 55-grant discrepancy between the overview and prize list
-- [ ] Confirm COOL Graviton4 AMI access and subscription terms on AWS Marketplace
+- [ ] Confirm DGX access: quota, GPU 0 availability, and a pinned PyTorch/CUDA build carrying `sm_70` kernels
+- [ ] Confirm COOL Graviton4 AMI access and subscription terms on AWS Marketplace *(only if the grant lands)*
 - [ ] Confirm AWS Free Tier credit eligibility for each member's account
 - [ ] Verify both contact emails receive mail — winners must respond to notification or forfeit
 - [ ] Submit via the JotForm linked from the competition page

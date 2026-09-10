@@ -8,7 +8,8 @@ Cloud Compute Grant Proposal — submitted by Team Parallax, September 2026
 - **What we are building** — Parallax, a cloud inspection service that refuses to answer when it should not. OpenCV 5 does the geometry; an interpretability probe scores whether that result can be trusted; an agent then accepts, re-looks, or escalates to a human.
 - **Why it is different** — most vision systems detect defects. None detect their own unreliability, which is the actual reason they fail to ship.
 - **OpenCV 5 role** — calibration, LightGlue alignment, homography, differencing, morphology, contour metrology. Irreducible geometric work, not preprocessing around a model call.
-- **AWS footprint** — Graviton4 with COOL on the Arm path, x86 for backbone inference, Bedrock for orchestration, DynamoDB and CloudWatch for audit and observability.
+- **Compute we already have** — an NVIDIA DGX-1 node (8x V100 32 GB, one GPU pinned) on which the full pipeline, probe training, and the VisA evaluation already run. Credits are not needed for baseline development.
+- **What the grant would fund** — the Arm path we cannot run ourselves: Graviton4 with COOL for the OpenCV 5 workload, x86 for backbone inference, Bedrock for orchestration, DynamoDB and CloudWatch for audit and observability.
 - **Featured paths** — both. Agentic Vision as the primary path, Best Use of COOL as a documented hybrid.
 - **Headline metric** — the escalation trade-off curve: at a given accuracy floor, what fraction of frames the system handles autonomously.
 - **Team** — 2 people, 7-week build, every component owned.
@@ -95,6 +96,14 @@ classification path and probe alone.
 
 ## 4. Planned AWS Architecture and Services
 
+**Where the project runs today.** We have no AWS account at present. The system is built and evaluated on an
+NVIDIA DGX-1 node we own (8x Tesla V100 32 GB, pipeline pinned to one GPU): OpenCV 5 on the host Xeon cores,
+the frozen DINOv3 backbone and probes on GPU 0, a deterministic policy engine as the planner, SQLite for
+verdicts and decision traces, and a locally served review queue. The Agentic Vision path runs end to end on
+that hardware. **Best Use of COOL does not and cannot** — COOL exists only for Graviton — which is precisely
+the gap this grant closes. The local and cloud deployments share one trace schema, so the port is a
+storage-adapter swap rather than a rewrite (full mapping in `parallax_architecture.md`, Section 3b).
+
 **Services:** Amazon EC2 (Graviton4 and x86), Amazon Bedrock, AWS Lambda, Amazon API Gateway, Amazon S3,
 Amazon DynamoDB, Amazon CloudWatch, AWS IAM, Amazon CloudFront.
 
@@ -104,18 +113,19 @@ COOL rules permit, with COOL executing the claimed core image workload on the Ar
 
 - **Intake** — API Gateway + Lambda receive a frame and part class; artifacts land in S3.
 - **Perception (Arm)** — EC2 Graviton4 on the COOL AMI runs the full OpenCV 5 pipeline.
-- **Confidence (x86)** — EC2 GPU instance runs the frozen DINOv2 backbone and probe sidecar.
+- **Confidence (x86)** — EC2 GPU instance runs the frozen DINOv3 backbone and probe sidecar.
 - **Orchestration** — Amazon Bedrock hosts the planner that selects accept / re-capture / escalate.
 - **State and audit** — DynamoDB stores verdicts and full decision traces; CloudWatch carries structured
   traces, latency, and escalation-rate dashboards.
 - **Human review** — a static queue on S3 + CloudFront showing each escalation with its visual evidence.
 - **Security** — per-component least-privilege IAM roles; no shared credentials.
 
-**Cost discipline and credit use.** We will not run an always-on GPU endpoint. The intake path and review queue
-stay warm on Lambda, S3, and CloudFront at negligible cost; Graviton and x86 pipeline instances start on demand
-for evaluation runs and the judge demonstration. AWS Free Tier credits plus the requested compute grant are
-budgeted primarily against Graviton benchmarking hours and Bedrock planner calls during the evaluation phase,
-which is where our spend concentrates. We understand promotional credits are non-transferable, apply only to
+**Cost discipline and credit use.** Baseline development draws nothing from the grant — probe fitting, the full
+VisA evaluation sweep, and the agent loop run on our own DGX at zero marginal cost. On AWS we will not run an
+always-on GPU endpoint: the intake path and review queue stay warm on Lambda, S3, and CloudFront at negligible
+cost, and Graviton and x86 instances start on demand for benchmark runs and the judge demonstration. AWS Free
+Tier credits plus the requested compute grant are budgeted against **Graviton benchmarking hours** and
+**Bedrock planner calls** — the work our own hardware cannot do. We understand promotional credits are non-transferable, apply only to
 eligible AWS services, and are subject to Free Tier terms and expiration.
 
 ---
@@ -132,7 +142,7 @@ flowchart TD
     end
 
     subgraph X86["x86 path"]
-        D["EC2 GPU - confidence sidecar<br/>frozen DINOv2 patch activations<br/>linear probe and Block-Sparse Featurizer<br/>confidence score, OOD score, evidence"]
+        D["EC2 GPU - confidence sidecar<br/>frozen DINOv3 patch activations<br/>linear probe and Block-Sparse Featurizer<br/>confidence score, OOD score, evidence"]
     end
 
     C -->|"aligned frame + verdict"| D
@@ -206,7 +216,11 @@ evidence. The decision trace is visible in the UI. We will additionally offer a 
 The repository ships pinned dependencies, infrastructure-as-code, a one-command deploy, and tests; we will
 rehearse a clean clone-and-deploy from scratch before submitting.
 
-**Licensing of everything we ship:** VisA (CC BY 4.0), DINOv2 (Apache 2.0), Block-Sparse Featurizer (MIT),
+**Licensing of everything we ship:** VisA (CC BY 4.0), DINOv3 (Meta DINOv3 License, access-gated),
+Block-Sparse Featurizer
+(<https://github.com/goodfire-ai/block-sparse-featurizer>, MIT, pinned at commit `219f121e`; paper
+arXiv:2606.25234), SAE baseline and subspace-capture metric (<https://github.com/goodfire-ai/sae-manifold>,
+MIT, pinned at commit `f2632ddb`; paper arXiv:2604.28119),
 OpenCV 5 (Apache 2.0), COOL via AWS Marketplace under its listing terms.
 
 ---
@@ -235,13 +249,14 @@ merely being installed.
 **Team size: 2.** Every component below has a named owner; nothing is unassigned.
 
 **Aditya Kumar — Perception and cloud infrastructure**
-Owns the OpenCV 5 pipeline (calibration, LightGlue alignment, differencing, segmentation, metrology), the
-Graviton4 / COOL deployment and benchmark, and the AWS infrastructure and observability.
+Owns the OpenCV 5 pipeline (calibration, LightGlue alignment, differencing, segmentation, metrology), the local
+DGX deployment and observability, and — if this grant lands — the Graviton4 / COOL port and benchmark.
 *`[Background to be completed: CV / systems / cloud experience, education or employment; prior hackathons and competitions with results.]`*
 
 **Saumilya Gupta — Confidence sidecar, agent, and evaluation**
-Owns the frozen DINOv2 backbone and probe sidecar (linear probe and Block-Sparse Featurizer), the Bedrock
-planner and escalation logic, the evaluation suite, and the technical report.
+Owns the frozen DINOv3 backbone and probe sidecar (linear probe and Block-Sparse Featurizer) on the local GPU,
+the planner and escalation logic (local policy engine; Bedrock on the cloud port), the evaluation suite, and
+the technical report.
 *`[Background to be completed: ML / interpretability / evaluation experience; prior hackathons and competitions with results.]`*
 
 **Shared:** the human review UI, the five-minute video, and reproducibility (pinned dependencies,
@@ -249,5 +264,6 @@ one-command deploy, clean-clone rehearsal).
 
 **Scope realism at this team size.** Two people over seven weeks is the constraint we have planned against, and
 our schedule reflects it: the highest-risk work (activation extraction and probes) sits in week 2, deliberately
-early. If the schedule slips, the **COOL benchmark is what we cut** — it is the most separable component and the
+early, and it runs on hardware we already control rather than on infrastructure we are waiting to be granted.
+If the schedule slips — or if credits do not arrive — the **COOL benchmark is what we cut** — it is the most separable component and the
 Overall award requires neither featured path. The Agentic Vision loop is not cut, because it is the project.

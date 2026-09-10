@@ -132,20 +132,61 @@ probes on a frozen sidecar model generalised from synthetic training data to rea
 cheaper than LLM-as-judge setups at comparable accuracy, and where white-box probing of a model beat black-box
 prompting of that *same* model by 96% to 51% F1 — from language to vision.
 
-**Our adaptation.** A frozen **DINOv2** backbone (Apache 2.0) produces patch activations for each aligned frame.
+**Our adaptation.** A frozen **DINOv3 ViT-B/16** backbone (`facebook/dinov3-vitb16-pretrain-lvd1689m`) produces patch
+activations for each aligned frame. This is the backbone the Block-Sparse Featurizer was developed and
+validated against, so the published results transfer to our setting directly rather than by analogy.
 On those activations we train:
 
 1. A **linear probe** — our guaranteed floor, roughly one day of work.
-2. A **Block-Sparse Featurizer** (Goodfire, MIT licence) — our primary signal. A BSF block yields two quantities where a
+2. A **Block-Sparse Featurizer** — our primary signal (Fel, Kowal, Jacobs, Hazra, Bhalla et al.,
+   *Structuring Sparsity: Block-Sparse Featurizers Capture Visual Concept Manifolds*, arXiv:2606.25234). We use
+   the authors' reference implementation, <https://github.com/goodfire-ai/block-sparse-featurizer> (MIT),
+   pinned at commit `219f121ea82d2b19200d1dac918396e6058d7eb9`, rather than reimplementing it. A BSF block yields two quantities where a
    sparse autoencoder yields one: the block norm, meaning *how strongly a concept is present*, and the block
    coordinate, meaning *where within that concept* the activation lies. For inspection this is the difference
    between "this resembles a weld seam" and "this is the cracked end of the weld-seam manifold" — an explanation
    we can render directly into the human escalation UI.
 
-We note that the BSF repository ships training code rather than pretrained featurizers, and that its reference
-loader uses DINOv3. We substitute DINOv2 for licence cleanliness. Training is tractable within our window: the
-published quickstart trains on patch activations from a few hundred images and runs on CPU, with GPU needed only
-for the one-time activation extraction pass.
+**What the repository ships, and what it does not.** It ships training code and three featurizer variants
+(`VanillaBSF`, `GrassmannianBSF`, `GroupLassoBSF`) behind one `encode` / `loss` / decoder interface, with one
+trainer and one visualiser; it does **not** ship pretrained featurizers, so we train ours and pin the commit so
+a judge can reproduce it. Training is tractable within our window: the published quickstart trains on patch
+activations from a few hundred images and runs on CPU, with the GPU needed only for the one-time activation
+extraction pass.
+
+**Matching the reference setting exactly.** We run the same backbone the BSF authors used, which removes a
+class of avoidable risk. The repository's `bsf.data` helper loads `facebook/dinov3-vitb16-pretrain-lvd1689m`
+at 224 px - 14x14 = 196 patch tokens at `d = 768`, dropping the first 5 tokens (CLS plus four registers) - and
+we use it as shipped. Critically, `pos_mean.npy` (a 196x768 per-patch-position mean over roughly 25M ImageNet
+patches, computed **for this backbone**) applies directly, so we inherit the authors' positional normalisation
+instead of estimating our own from a smaller corpus. The normalisation convention is not optional: centre by
+that mean, then scale so the mean squared activation norm equals `d`. The featurizers' sparsity thresholds
+assume it.
+
+**Licensing note.** DINOv3 is released under Meta's DINOv3 License rather than a permissive OSI licence, and
+the weights are access-gated. We have accepted those terms deliberately, having weighed them against the
+benefit of reproducing the reference setting exactly. The featurizer core consumes an `(N, d)` activation
+matrix and is backbone-agnostic, so a swap to DINOv2 (Apache 2.0) remains a configuration change plus one
+extraction pass should that trade-off need revisiting.
+
+**Why the published results make this a targeted choice rather than a hopeful one.** The BSF paper's
+minimum-description-length analysis finds all three variants describe activations more compactly than
+direction-based featurizers, with recovered concepts typically **two- to four-dimensional** — which is why we
+set `group_size` to 3 and sweep {2, 3, 4} rather than guessing. More directly relevant to inspection: among
+the novel manifolds the paper recovers from DINO features are **shadows and lighting**. Illumination shift is
+the canonical way a golden-reference differencing pipeline produces a false defect, so the confidence signal
+we are attaching is one that has been shown to represent precisely the nuisance variable that breaks the
+geometry stage.
+
+**The SAE baseline, and why we expect to beat it.** The companion paper — Bhalla, Fel, Rager et al., *Do
+Sparse Autoencoders Capture Concept Manifolds?*, arXiv:2604.28119 — shows SAEs recover continuous structure
+suboptimally, fragmenting a manifold across atoms in a regime the authors term **dilution**, which is why
+manifold structure is rarely legible in any single SAE feature. We do not take that on trust: the paper's
+evaluation code is released at <https://github.com/goodfire-ai/sae-manifold> (MIT, pinned at
+`f2632ddbb25f4c670254ceea999058b9ba4b0450`), and we reuse its minimal `BatchTopKSAE` as our SAE baseline and
+its subspace-capture metric as the quantitative comparison. **Caveat we are explicit about:** that repository
+targets Llama-3.1-8B with text-prompt manifolds, so what transfers is the SAE class and the metric definition,
+not the data pipeline. We port the metric to our DINOv3 activations and say so in the report.
 
 **BSF serves two independent purposes.** First, as a candidate confidence signal, where we expect but do not
 assume better out-of-distribution generalisation than a raw activation probe. Second, and independently, as the
@@ -161,7 +202,37 @@ reported as a result, not omitted.
 
 ---
 
-## 5. Planned AWS Architecture and Services
+## 5. Architecture: Local Baseline and Planned AWS Deployment
+
+### 5.1 Development and evaluation baseline (on-premises, in use today)
+
+We have no AWS account at this time, so the system is built and evaluated on hardware we own: a single
+**NVIDIA DGX-1 node with 8x Tesla V100 32 GB**, with the pipeline pinned to **one GPU**
+(`CUDA_VISIBLE_DEVICES=0`) so the remaining cards stay free for other tenants and the throughput claim holds
+on a single-accelerator budget.
+
+| Stage | Local runtime | AWS target (Section 5.2) |
+|---|---|---|
+| Intake | FastAPI service on the DGX host | API Gateway + Lambda |
+| OpenCV 5 perception | Host Xeon cores, pinned core set | EC2 Graviton4 on the COOL AMI |
+| Confidence sidecar | Frozen DINOv3 + probe + BSF on GPU 0 | EC2 x86 GPU instance |
+| Planner | Deterministic policy engine on host CPU, optional local open-weights LLM for escalation rationale | Amazon Bedrock |
+| Verdicts and traces | SQLite in WAL mode | DynamoDB |
+| Frames and artifacts | Content-addressed local filesystem | S3 |
+| Observability | JSONL event log + Prometheus/Grafana | CloudWatch |
+| Human review queue | Static site served by the intake process | S3 + CloudFront |
+
+**Volta constraints, handled up front.** V100 is compute capability SM 7.0: it has no BF16, and
+FlashAttention-2 requires SM 8.0 or newer. We therefore run autocast in **fp16** rather than bf16 and use the
+**PyTorch SDPA memory-efficient backend** rather than FlashAttention. The PyTorch/CUDA build is pinned to one
+that ships `sm_70` kernels, and startup asserts on `torch.cuda.get_device_capability()` so a silent CPU
+fallback cannot masquerade as a slow GPU.
+
+**Consequence for the featured paths.** The Agentic Vision path — the primary one — runs end to end on this
+hardware with no cloud dependency. **Best Use of COOL cannot**: COOL exists only for Graviton, so that path is
+live only in the AWS deployment below and is therefore conditional on this grant.
+
+### 5.2 Planned AWS architecture and services
 
 ```
                             +--------------------------------------+
@@ -179,7 +250,7 @@ reported as a result, not omitted.
                                             v
                          +-----------------------------------------+
                          |  EC2 (x86, GPU) - Confidence Sidecar     |   x86 PATH
-                         |  frozen DINOv2 -> patch activations      |
+                         |  frozen DINOv3 -> patch activations      |
                          |  -> linear probe / BSF                   |
                          |  -> confidence + OOD score + evidence    |
                          +------------------+----------------------+
@@ -211,10 +282,12 @@ with COOL executing the claimed core image workload on the Arm component.
 **Services:** EC2 (Graviton4 + x86), Amazon Bedrock, AWS Lambda, API Gateway, Amazon S3, Amazon DynamoDB,
 Amazon CloudWatch, AWS IAM, Amazon CloudFront.
 
-**Cost discipline.** We will not run an always-on GPU endpoint. The intake path and review queue stay warm on
-Lambda, S3, and CloudFront at negligible cost; the Graviton and x86 pipeline instances are started on demand for
-evaluation runs and for the judge demonstration. The requested grant is budgeted primarily against Graviton
-benchmarking hours and Bedrock planner calls during evaluation.
+**Cost discipline.** Baseline development costs the grant nothing: probe fitting, the full VisA evaluation
+sweep, and the agent loop all run on our own DGX at zero marginal cost. On AWS we will not run an always-on
+GPU endpoint either — the intake path and review queue stay warm on Lambda, S3, and CloudFront at negligible
+cost, and the Graviton and x86 instances start on demand for benchmark runs and the judge demonstration. The
+requested grant is budgeted primarily against **Graviton benchmarking hours** and **Bedrock planner calls**,
+which is the work our own hardware cannot do.
 
 ---
 
@@ -262,7 +335,10 @@ escalation with its evidence. The decision trace is visible in the UI. We will a
 screen-share walkthrough. The repository ships pinned dependencies, infrastructure-as-code, a one-command
 deploy, and a test suite; we will rehearse a clean clone-and-deploy from scratch before submitting.
 
-**Licensing of everything we ship:** VisA (CC BY 4.0), DINOv2 (Apache 2.0), Block-Sparse Featurizer (MIT),
+**Licensing of everything we ship:** VisA (CC BY 4.0), DINOv3 (Meta DINOv3 License, access-gated),
+Block-Sparse Featurizer
+(<https://github.com/goodfire-ai/block-sparse-featurizer>, MIT), SAE baseline and subspace-capture metric
+(<https://github.com/goodfire-ai/sae-manifold>, MIT),
 OpenCV 5 (Apache 2.0), COOL via AWS Marketplace under its listing terms.
 
 ---
@@ -293,14 +369,15 @@ merely being installed.
 **Team size: 2.** Every component has a named owner; nothing is unassigned.
 
 **Aditya Kumar** (vasudeo118@gmail.com) — Perception and cloud infrastructure
-Owns the OpenCV 5 pipeline (calibration, LightGlue alignment, differencing, segmentation, metrology), the
-Graviton4 / COOL deployment and benchmark, and the AWS infrastructure and observability.
+Owns the OpenCV 5 pipeline (calibration, LightGlue alignment, differencing, segmentation, metrology), the local
+DGX deployment and observability, and — if the grant lands — the Graviton4 / COOL port and benchmark.
 `[FILL: background — relevant CV / systems / cloud experience, education or employment; prior hackathons and
 competitions with results.]`
 
 **Saumilya Gupta** (saumilya.ai@gmail.com) — Confidence sidecar, agent, and evaluation
-Owns the frozen DINOv2 backbone and probe sidecar (linear probe and Block-Sparse Featurizer), the Bedrock
-planner and escalation logic, the evaluation suite, and the technical report.
+Owns the frozen DINOv3 backbone and probe sidecar (linear probe and Block-Sparse Featurizer) on the local GPU,
+the planner and escalation logic (local policy engine; Bedrock on the cloud port), the evaluation suite, and
+the technical report.
 `[FILL: background — relevant ML / interpretability / evaluation experience; prior hackathons and competitions
 with results.]`
 
@@ -316,9 +393,9 @@ deploy, clean-clone rehearsal).
 | 1 | Sep 5-11 | VisA ingested; OpenCV 5 pipeline end-to-end locally; version compliance verified |
 | 2 | Sep 12-18 | **Highest-risk work first** — activation extraction, linear probe, then BSF; AUROC on held-out and OOD splits, both probes reported side by side |
 | 3 | Sep 19-25 | Probe wired into the agent loop; a re-look demonstrably changes a verdict. Grant check-in (window closes Oct 2) |
-| 4 | Sep 26-Oct 2 | AWS deployment: Bedrock planner, DynamoDB traces, IAM, escalation queue UI |
+| 4 | Sep 26-Oct 2 | Local deployment hardened: policy-engine planner, SQLite trace store, escalation queue UI, replay tooling |
 | 5 | Oct 3-9 | Full evaluation: baselines, shift table, ablation, escalation curve, failure gallery |
-| 6 | Oct 10-16 | Graviton4 + COOL port and benchmark; reproducibility pass — pinned deps, one-command deploy |
+| 6 | Oct 10-16 | **If the grant landed:** Graviton4 + COOL port and benchmark, plus the storage-adapter swap to S3/DynamoDB/CloudWatch. **If not:** that week goes to the evaluation sweep and the failure gallery. Reproducibility pass either way — pinned deps, one-command deploy |
 | 7 | Oct 17-23 | Technical report, architecture and agent-workflow diagrams, five-minute video |
 | 8 | Oct 24-26 | Buffer; clean-clone deploy rehearsal; submit ahead of the deadline |
 
@@ -336,5 +413,6 @@ result the rubric asks for.
 - [ ] Confirm with competition@opencv.org whether the grant proposal window is still open at this date
 - [ ] Ask the organisers about the 50-team versus 55-grant discrepancy between the overview and prize list
 - [ ] Add both member backgrounds (Section 9) — this section is what the grant is scored on
-- [ ] Confirm COOL Graviton4 AMI access and subscription terms on AWS Marketplace
+- [ ] Confirm DGX access: quota, GPU 0 availability, and a pinned PyTorch/CUDA build carrying `sm_70` kernels
+- [ ] Confirm COOL Graviton4 AMI access and subscription terms on AWS Marketplace *(only if the grant lands)*
 - [ ] Confirm AWS Free Tier credit eligibility for each member's account
