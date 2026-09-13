@@ -21,7 +21,10 @@ BSF_DIR = VENDOR_DIR / "block-sparse-featurizer"
 if str(BSF_DIR) not in sys.path:
     sys.path.append(str(BSF_DIR))
 
-import bsf
+try:
+    import bsf
+except ImportError:
+    bsf = None
 
 
 @dataclass(frozen=True)
@@ -45,6 +48,11 @@ class ParallaxBSF:
     """Wraps a trained BSF model to score Parallax frame features."""
 
     def __init__(self, model_path: Path | str, device: str | None = None):
+        if bsf is None:
+            raise ImportError(
+                "The bsf module is not available. Please run `git submodule update --init --recursive` "
+                "to initialize vendor/block-sparse-featurizer."
+            )
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.model_path = Path(model_path)
         

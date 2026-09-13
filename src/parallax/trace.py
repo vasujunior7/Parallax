@@ -47,6 +47,7 @@ Schema (``decisions`` table):
 """
 from __future__ import annotations
 
+import json
 import sqlite3
 import threading
 from pathlib import Path
@@ -68,6 +69,7 @@ CREATE TABLE IF NOT EXISTS decisions (
     ood_score              REAL NOT NULL,
     bsf_residual           REAL NOT NULL,
     bsf_top_block_norm     REAL NOT NULL,
+    bsf_top_block_coord    TEXT,
     vision_is_defective    INTEGER NOT NULL,
     vision_n_defects       INTEGER NOT NULL,
     vision_total_area_px   REAL NOT NULL,
@@ -87,6 +89,7 @@ INSERT OR REPLACE INTO decisions VALUES (
     :decision_id, :timestamp_utc, :frame_id, :object_class,
     :decision, :rule_index, :reason,
     :retry_count, :ood_score, :bsf_residual, :bsf_top_block_norm,
+    :bsf_top_block_coord,
     :vision_is_defective, :vision_n_defects, :vision_total_area_px,
     :ood_relook_threshold, :ood_escalate_threshold,
     :bsf_relook_threshold, :bsf_escalate_threshold,
@@ -130,6 +133,14 @@ class TraceStore:
         c   = result.config
         v   = s.verdict
 
+        # Encode the block-coordinate vector as JSON so it survives a round-trip
+        # through SQLite TEXT without loss of precision.
+        coord_json = (
+            json.dumps([float(x) for x in s.bsf_top_block_coord])
+            if s.bsf_top_block_coord is not None
+            else None
+        )
+
         row = {
             "decision_id":            result.decision_id,
             "timestamp_utc":          result.timestamp_utc,
@@ -142,6 +153,7 @@ class TraceStore:
             "ood_score":              s.ood_score,
             "bsf_residual":           s.bsf_residual,
             "bsf_top_block_norm":     s.bsf_top_block_norm,
+            "bsf_top_block_coord":    coord_json,
             "vision_is_defective":    int(v.is_defective),
             "vision_n_defects":       len(v.defects),
             "vision_total_area_px":   v.total_area_px,
@@ -238,6 +250,37 @@ class TraceStore:
         """Close the underlying connection (idempotent)."""
         with self._lock:
             self._conn.close()
+
+    def escalations_for_ui(
+        self,
+        limit: int = 50,
+        object_class: Optional[str] = None,
+    ) -> list[dict]:
+        """Return the most recent ESCALATE rows in a UI-friendly format.
+
+        Decodes ``bsf_top_block_coord`` from JSON back to a Python list.
+        """
+        with self._lock:
+            if object_class:
+                cur = self._conn.execute(
+                    "SELECT * FROM decisions WHERE decision='ESCALATE'"
+                    " AND object_class=? ORDER BY timestamp_utc DESC LIMIT ?",
+                    (object_class, limit),
+                )
+            else:
+                cur = self._conn.execute(
+                    "SELECT * FROM decisions WHERE decision='ESCALATE'"
+                    " ORDER BY timestamp_utc DESC LIMIT ?",
+                    (limit,),
+                )
+            cols = [d[0] for d in cur.description]
+            rows = [dict(zip(cols, row)) for row in cur.fetchall()]
+
+        for row in rows:
+            raw = row.get("bsf_top_block_coord")
+            row["bsf_top_block_coord"] = json.loads(raw) if raw else None
+
+        return rows
 
     def __enter__(self) -> "TraceStore":
         return self
