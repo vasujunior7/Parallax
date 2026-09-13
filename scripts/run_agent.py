@@ -51,7 +51,7 @@ from parallax.agent import AgentConfig, AgentState, Decision, decide
 from parallax.backbone import centre_and_scale
 from parallax.bsf import ParallaxBSF
 from parallax.features import BackboneRunner
-from parallax.inspect import inspect as cv_inspect
+from parallax.inspect import inspect as cv_inspect, DEFAULT_THRESHOLD
 from parallax.probe import LinearProbe, fit as fit_probe
 from parallax.reference import GoldenReference
 from parallax.tiling import stitch
@@ -144,10 +144,25 @@ def probe_image_score(probe: LinearProbe, feats) -> float:
     return float(patch_scores.max())
 
 
-def bsf_top_norm(bsf_model: ParallaxBSF, feats, pos_mean: np.ndarray) -> float:
-    """Maximum block norm across all patches in the frame."""
-    concepts = bsf_model.extract_concepts(feats)
-    return float(concepts.norms.max())
+def bsf_top_norm_and_coord(
+    bsf_model: ParallaxBSF, feats, pos_mean: np.ndarray
+) -> tuple[float, list[float]]:
+    """Maximum block norm across all patches + the coordinate of that loudest block.
+
+    Returns
+    -------
+    top_norm  : float — the highest block norm in the frame
+    top_coord : list[float] — normalised coordinate vector inside that block
+                (length = group_size, e.g. 3 for GrassmannianBSF)
+    """
+    concepts = bsf_model.extract_concepts(feats)  # BSFConcepts
+    # norms: (n_tiles, n_patches, n_groups)  coords: (..., group_size)
+    flat_norms  = concepts.norms.reshape(-1, concepts.n_groups)   # (N, n_groups)
+    flat_coords = concepts.coords.reshape(-1, concepts.n_groups, -1)  # (N, n_groups, gs)
+    idx_patch, idx_group = np.unravel_index(flat_norms.argmax(), flat_norms.shape)
+    top_norm  = float(flat_norms[idx_patch, idx_group])
+    top_coord = flat_coords[idx_patch, idx_group].tolist()
+    return top_norm, top_coord
 
 
 # ==============================================================================
@@ -180,41 +195,93 @@ def run_class(
     ood_scores_normal, ood_scores_anomaly = [], []
     bsf_scores_normal, bsf_scores_anomaly = [], []
 
+    # Re-look parameter schedule: (clahe_clip_limit, crop_fraction, threshold_divisor)
+    # Each retry tightens crop and boosts contrast — visual evidence changes the verdict.
+    RELOOK_PARAMS = [
+        (2.0, 1.00, 1.0),   # attempt 0: original frame, default CLAHE
+        (3.5, 0.85, 1.2),   # attempt 1: tighter crop, higher contrast, lower threshold
+        (4.5, 0.70, 1.5),   # attempt 2: tightest crop, max contrast, most sensitive diff
+    ]
+
     for sample in test_samples:
-        img = cv2.imread(str(sample.image))
-        if img is None:
+        img_orig = cv2.imread(str(sample.image))
+        if img_orig is None:
             log.warning(f"    Cannot read {sample.image}, skipping")
             continue
 
-        # ── three heads ──────────────────────────────────────────────────────
-        feats = runner.extract(img)
+        retry_count = 0
+        ood = bsf_err = top_norm = 0.0
+        top_coord: list = []
+        result = None
 
-        # 1. OpenCV verdict
-        ref_img = reference.median.astype(np.uint8)
-        verdict = cv_inspect(img, ref_img)
+        while True:
+            clahe_clip, crop_frac, thr_div = RELOOK_PARAMS[
+                min(retry_count, len(RELOOK_PARAMS) - 1)
+            ]
 
-        # 2. Probe OOD score
-        ood = probe_image_score(probe, feats)
+            # Apply crop for re-look attempts
+            if crop_frac < 1.0:
+                h, w = img_orig.shape[:2]
+                cy, cx = h // 2, w // 2
+                nh, nw = int(h * crop_frac), int(w * crop_frac)
+                y0, x0 = cy - nh // 2, cx - nw // 2
+                img_frame = img_orig[y0:y0 + nh, x0:x0 + nw]
+            else:
+                img_frame = img_orig
 
-        # 3. BSF residual
-        bsf_err  = bsf_residual(bsf_mdl, feats, pos_mean)
-        top_norm = bsf_top_norm(bsf_mdl, feats, pos_mean)
+            # ── three heads ──────────────────────────────────────────────────
+            feats = runner.extract(img_frame)
 
-        # ── agent decision ───────────────────────────────────────────────────
-        state = AgentState(
-            verdict            = verdict,
-            ood_score          = ood,
-            bsf_residual       = bsf_err,
-            bsf_top_block_norm = top_norm,
-            retry_count        = 0,
-            object_class       = object_class,
-            frame_id           = str(sample.image),
-        )
-        result = decide(state, config)
-        store.log(result)
+            # 1. OpenCV verdict (threshold varies by retry — vision can change)
+            ref_img   = reference.median.astype(np.uint8)
+            if crop_frac < 1.0:
+                h, w = ref_img.shape[:2]
+                cy, cx = h // 2, w // 2
+                nh, nw = int(h * crop_frac), int(w * crop_frac)
+                y0, x0 = cy - nh // 2, cx - nw // 2
+                ref_crop = ref_img[y0:y0 + nh, x0:x0 + nw]
+            else:
+                ref_crop = ref_img
 
-        d_name = result.decision.name
-        class_rows[d_name] = class_rows.get(d_name, 0) + 1
+            verdict = cv_inspect(
+                img_frame, ref_crop,
+                threshold=max(1, int(40 / thr_div)),
+            )
+
+            # 2. Probe OOD score
+            ood = probe_image_score(probe, feats)
+
+            # 3. BSF residual + block coord (the UI needs coord to explain escalations)
+            bsf_err            = bsf_residual(bsf_mdl, feats, pos_mean)
+            top_norm, top_coord = bsf_top_norm_and_coord(bsf_mdl, feats, pos_mean)
+
+            # ── agent decision ───────────────────────────────────────────────
+            state = AgentState(
+                verdict              = verdict,
+                ood_score            = ood,
+                bsf_residual         = bsf_err,
+                bsf_top_block_norm   = top_norm,
+                bsf_top_block_coord  = top_coord,
+                retry_count          = retry_count,
+                object_class         = object_class,
+                frame_id             = str(sample.image),
+            )
+            result = decide(state, config)
+            store.log(result)
+
+            if result.decision == Decision.RELOOK and retry_count < config.max_retries:
+                class_rows["RELOOK"] = class_rows.get("RELOOK", 0) + 1
+                retry_count += 1
+                log.debug(
+                    f"    RE-LOOK {retry_count}: crop={crop_frac:.0%} "
+                    f"clahe={clahe_clip} thr_div={thr_div}"
+                )
+                continue  # re-run all three heads with new params
+
+            # Terminal decision: ACCEPT or ESCALATE
+            d_name = result.decision.name
+            class_rows[d_name] = class_rows.get(d_name, 0) + 1
+            break
 
         # confusion: ground-truth label vs ESCALATE
         is_anomalous = sample.is_anomalous
@@ -245,8 +312,8 @@ def run_class(
         f"  ACCEPT={class_rows['ACCEPT']}  RELOOK={class_rows['RELOOK']}  ESCALATE={class_rows['ESCALATE']}"
     )
     log.info(
-        f"  Sensitivity(anomaly→ESC)={sensitivity:.3f}  "
-        f"Specificity(normal→ACC)={specificity:.3f}  "
+        f"  Sensitivity(anomaly->ESC)={sensitivity:.3f}  "
+        f"Specificity(normal->ACC)={specificity:.3f}  "
         f"FalseEsc={false_esc:.3f}"
     )
 

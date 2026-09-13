@@ -66,20 +66,24 @@ class AgentConfig:
     They are deliberately conservative: a false escalation costs a human a few seconds;
     a missed defect can cost a product recall.
 
+    **Important:** the Linear Probe scores Mahalanobis distances in the 2000–2700
+    range on VisA rigid classes (ood_normal_mean ≈ 2316, ood_anomaly_mean ≈ 2693
+    for pcb1).  The placeholder defaults of 8.0 / 14.0 are too small and will
+    escalate every frame.  Use ``scripts/calibrate_thresholds.py`` to derive
+    per-run values, or pass explicit thresholds via ``AgentConfig(...)``.
+
     Attributes
     ----------
     ood_relook_threshold:
-        Linear Probe Mahalanobis score above which we request a second capture.
-        Default: 8.0  (~75th pct of normal image scores across the six rigid classes).
+        Linear Probe image-level Mahalanobis score above which we request a
+        second capture.  Calibrated value ≈ mean_normal + 1.5 * half_separation.
     ood_escalate_threshold:
-        OOD score above which a vision-confirmed defect triggers an ESCALATE immediately.
-        Default: 14.0  (~90th pct of anomaly image scores).
+        OOD score above which a vision-confirmed defect triggers an ESCALATE
+        immediately.  Calibrated value ≈ mean_normal + 2.5 * half_separation.
     bsf_relook_threshold:
         BSF mean patch reconstruction error above which we request a re-look.
-        Default: 0.15  (normal mean ≈ 0.10, this is +50 %).
     bsf_escalate_threshold:
         BSF residual above which a vision-confirmed defect triggers an ESCALATE.
-        Default: 0.25  (above the 90th pct of anomaly patch errors).
     max_retries:
         Maximum RELOOK attempts before a still-uncertain frame is force-escalated.
         Default: 2.
@@ -128,6 +132,12 @@ class AgentState:
     bsf_top_block_norm:
         Maximum block norm across all patches.  The loudest concept activation.
         Diagnostic only — not used in the main policy, surfaced in the trace.
+    bsf_top_block_coord:
+        Normalised coordinate vector inside the loudest concept block
+        (shape ``(group_size,)``, e.g. 3-D for GrassmannianBSF with group_size=3).
+        Encodes *where within* that concept the frame activation sits — the
+        quantity the escalation UI renders as "cracked end of weld-seam manifold"
+        rather than just "weld-seam fired".  ``None`` when BSF is not available.
     retry_count:
         How many RELOOK decisions have already been issued for this frame.
     object_class:
@@ -137,13 +147,14 @@ class AgentState:
         Optional stable identifier for the frame (file path, timestamp, etc.).
         Used as a trace key.
     """
-    verdict:            Verdict
-    ood_score:          float
-    bsf_residual:       float
-    bsf_top_block_norm: float
-    retry_count:        int
-    object_class:       str
-    frame_id:           Optional[str] = None
+    verdict:               Verdict
+    ood_score:             float
+    bsf_residual:          float
+    bsf_top_block_norm:    float
+    retry_count:           int
+    object_class:          str
+    frame_id:              Optional[str]   = None
+    bsf_top_block_coord:   Optional[list]  = None  # list[float], length = group_size
 
 
 # ---------------------------------------------------------------------------
