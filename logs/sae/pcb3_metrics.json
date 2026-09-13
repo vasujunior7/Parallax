@@ -1,0 +1,19 @@
+{
+  "class": "pcb3",
+  "model": "sae",
+  "d_sae": 1536,
+  "k": 16,
+  "train_normals": 80,
+  "test_samples": 201,
+  "train_time_s": 51.5,
+  "img_auroc": 0.8144,
+  "img_ap": 0.7921,
+  "img_f1_best": 0.7628,
+  "pix_auroc": 0.9743,
+  "pix_ap": 0.4297,
+  "pix_f1_best": 0.517,
+  "aupro": 0.8625,
+  "subspace_k95": 65,
+  "subspace_elbow": 16,
+  "var_at_k16": 0.4714
+}

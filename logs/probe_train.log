@@ -1,0 +1,13 @@
+[15:24:50] ingest finished, starting probe training
+facebook/dinov3-vitb16-pretrain-lvd1689m | device=cuda dtype=torch.float16 | tile=224 grid=14x14 patches/tile=196 dim=768
+
+class         fit_px   hit    IoU   m_def    m_bg  ratio  AUROC
+---------------------------------------------------------------
+pcb1          493920  0.80  0.121  1806.6   534.5   3.38  0.958   (974s)
+pcb2          493920  0.60  0.191  1292.8   462.5   2.80  0.730   (1006s)
+pcb3          423360  0.56  0.255  1601.5   511.1   3.13  0.835   (882s)
+pcb4          439040  0.92  0.254  1352.6   488.9   2.77  0.883   (740s)
+capsules      423360  0.52  0.231  1542.4   486.2   3.17  0.901   (700s)
+candle        439040  0.52  0.164  1729.4   519.0   3.33  0.848   (704s)
+
+probes written to data/probes/

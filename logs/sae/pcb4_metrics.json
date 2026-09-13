@@ -1,0 +1,19 @@
+{
+  "class": "pcb4",
+  "model": "sae",
+  "d_sae": 1536,
+  "k": 16,
+  "train_normals": 80,
+  "test_samples": 201,
+  "train_time_s": 52.0,
+  "img_auroc": 0.8853,
+  "img_ap": 0.7755,
+  "img_f1_best": 0.87,
+  "pix_auroc": 0.9533,
+  "pix_ap": 0.2932,
+  "pix_f1_best": 0.3579,
+  "aupro": 0.7967,
+  "subspace_k95": 65,
+  "subspace_elbow": 17,
+  "var_at_k16": 0.5369
+}

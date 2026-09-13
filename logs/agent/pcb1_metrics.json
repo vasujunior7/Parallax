@@ -1,0 +1,18 @@
+{
+  "class": "pcb1",
+  "n_test": 200,
+  "accept": 0,
+  "relook": 0,
+  "escalate": 200,
+  "TP": 100,
+  "FP": 100,
+  "TN": 0,
+  "FN": 0,
+  "sensitivity": 1.0,
+  "specificity": 0.0,
+  "false_esc_rate": 1.0,
+  "ood_normal_mean": 2315.757,
+  "ood_anomaly_mean": 2693.062,
+  "bsf_normal_mean": 2.1648,
+  "bsf_anomaly_mean": 2.1676
+}

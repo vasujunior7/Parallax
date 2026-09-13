@@ -1,0 +1,16 @@
+{
+  "class": "candle",
+  "train_normals": 80,
+  "test_samples": 200,
+  "train_time_s": 1079.4,
+  "final_r2": 0.8844,
+  "final_l0": 16.0,
+  "dead_blocks": 0,
+  "img_auroc": 0.9404,
+  "img_ap": 0.9341,
+  "img_f1_best": 0.8952,
+  "pix_auroc": 0.9932,
+  "pix_ap": 0.4151,
+  "pix_f1_best": 0.4679,
+  "aupro": 0.9546
+}

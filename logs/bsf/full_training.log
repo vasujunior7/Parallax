@@ -1,0 +1,302 @@
+19:25:30  INFO     Loading VisA index...
+19:25:30  INFO       6218 samples indexed
+19:25:30  INFO     Loading backbone runner...
+19:25:37  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+19:25:37  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
+19:25:38  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+19:25:38  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
+19:25:38  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/config.json "HTTP/1.1 200 OK"
+
+Loading weights:   0%|          | 0/211 [00:00<?, ?it/s]
+Loading weights:   7%|6         | 14/211 [00:00<00:01, 104.57it/s]
+Loading weights:  12%|#1        | 25/211 [00:00<00:02, 82.11it/s] 
+Loading weights: 100%|##########| 211/211 [00:00<00:00, 560.78it/s]
+19:25:39  INFO       facebook/dinov3-vitb16-pretrain-lvd1689m | device=cuda dtype=torch.bfloat16 | tile=224 grid=14x14 patches/tile=196 dim=768
+19:25:39  INFO     Loading pos_mean from C:\Users\saumi\Desktop\CODES\parllex\Parallax\vendor\block-sparse-featurizer\bsf\pos_mean.npy...
+19:25:39  INFO     ============================================================
+19:25:39  INFO     CLASS: pcb1
+19:25:39  INFO     ============================================================
+19:25:39  INFO       Train normals : 80
+19:25:39  INFO       Test samples  : 200
+19:25:39  INFO       Extracting training features...
+  25/80 frames
+  50/80 frames
+  75/80 frames
+19:26:07  INFO       Feature extraction: 28.2s
+  80/80 frames
+19:26:12  INFO       Subsampling 987,840 \u2192 500,000 patches for RAM budget
+19:26:14  INFO       Training tensor: (500000, 768)  (500,000 patches ╫ 768 dims)
+19:26:14  INFO       Training GrassmannianBSF  n_groups=512 epochs=40...
+epoch   1/40   loss=0.5331   R2=0.6233   L0=16.0   dead=0/512
+epoch   4/40   loss=0.0969   R2=0.8482   L0=16.0   dead=0/512
+epoch   8/40   loss=0.0754   R2=0.8777   L0=16.0   dead=0/512
+epoch  12/40   loss=0.0693   R2=0.8861   L0=16.0   dead=0/512
+epoch  16/40   loss=0.0665   R2=0.8910   L0=16.0   dead=0/512
+epoch  20/40   loss=0.0650   R2=0.8934   L0=16.0   dead=2/512
+epoch  24/40   loss=0.0640   R2=0.8946   L0=16.0   dead=2/512
+epoch  28/40   loss=0.0633   R2=0.8955   L0=16.0   dead=2/512
+epoch  32/40   loss=0.0629   R2=0.8970   L0=16.0   dead=2/512
+epoch  36/40   loss=0.0627   R2=0.8965   L0=16.0   dead=2/512
+epoch  40/40   loss=0.0626   R2=0.8963   L0=16.0   dead=3/512
+19:43:40  INFO       Training complete in 1045.5s
+19:43:55  INFO       Final  R2=0.8970  L0=16.0  dead=0
+19:43:55  INFO       Saved weights \u2192 C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\bsf\pcb1.pt
+19:43:55  INFO       Saved history  \u2192 C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\pcb1_history.jsonl
+19:43:56  INFO       Saved training curves \u2192 C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\pcb1_training_curves.png
+19:43:56  INFO       Evaluating on test split...
+19:46:16  INFO       Saved score distribution \u2192 C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\pcb1_score_distribution.png
+C:\Users\saumi\Desktop\CODES\parllex\Parallax\.venv\Lib\site-packages\sklearn\metrics\_ranking.py:1364: UndefinedMetricWarning: No positive samples in y_true, true positive value should be meaningless
+  warnings.warn(
+C:\Users\saumi\Desktop\CODES\parllex\Parallax\.venv\Lib\site-packages\sklearn\metrics\_ranking.py:469: UndefinedMetricWarning: Only one class is present in y_true. ROC AUC score is not defined in that case.
+  warnings.warn(
+C:\Users\saumi\Desktop\CODES\parllex\Parallax\.venv\Lib\site-packages\sklearn\metrics\_ranking.py:1192: UserWarning: No positive class found in y_true, recall is set to one for all thresholds.
+  warnings.warn(
+C:\Users\saumi\Desktop\CODES\parllex\Parallax\.venv\Lib\site-packages\sklearn\metrics\_ranking.py:1192: UserWarning: No positive class found in y_true, recall is set to one for all thresholds.
+  warnings.warn(
+C:\Users\saumi\Desktop\CODES\parllex\Parallax\scripts\train_bsf.py:291: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  plt.tight_layout()
+C:\Users\saumi\Desktop\CODES\parllex\Parallax\scripts\train_bsf.py:293: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  plt.savefig(path, dpi=150)
+19:53:52  INFO       Saved ROC/PR curves \u2192 C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\pcb1_roc_pr.png
+19:53:52  INFO       img AUROC=0.8928  img AP=0.8836
+19:53:52  INFO       pix AUROC=None  AUPRO=0.0
+19:53:52  INFO       Saved metrics  \u2192 C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\pcb1_metrics.json
+19:53:53  INFO     ============================================================
+19:53:53  INFO     CLASS: pcb2
+19:53:53  INFO     ============================================================
+19:53:53  INFO       Train normals : 80
+19:53:53  INFO       Test samples  : 200
+19:53:53  INFO       Extracting training features...
+  25/80 frames
+  50/80 frames
+  75/80 frames
+  80/80 frames
+19:54:09  INFO       Feature extraction: 15.8s
+19:54:12  INFO       Subsampling 987,840 \u2192 500,000 patches for RAM budget
+19:54:14  INFO       Training tensor: (500000, 768)  (500,000 patches ╫ 768 dims)
+19:54:14  INFO       Training GrassmannianBSF  n_groups=512 epochs=40...
+epoch   1/40   loss=0.5158   R2=0.6509   L0=16.0   dead=15/512
+epoch   4/40   loss=0.0832   R2=0.8705   L0=16.0   dead=0/512
+epoch   8/40   loss=0.0644   R2=0.8954   L0=16.0   dead=3/512
+epoch  12/40   loss=0.0588   R2=0.9034   L0=16.0   dead=3/512
+epoch  16/40   loss=0.0562   R2=0.9075   L0=16.0   dead=0/512
+epoch  20/40   loss=0.0548   R2=0.9092   L0=16.0   dead=1/512
+epoch  24/40   loss=0.0540   R2=0.9100   L0=16.0   dead=2/512
+epoch  28/40   loss=0.0535   R2=0.9116   L0=16.0   dead=0/512
+epoch  32/40   loss=0.0531   R2=0.9121   L0=16.0   dead=4/512
+epoch  36/40   loss=0.0530   R2=0.9132   L0=16.0   dead=2/512
+epoch  40/40   loss=0.0530   R2=0.9124   L0=16.0   dead=4/512
+20:11:02  INFO       Training complete in 1008.4s
+20:11:16  INFO       Final  R2=0.9125  L0=16.0  dead=0
+20:11:16  INFO       Saved weights \u2192 C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\bsf\pcb2.pt
+20:11:16  INFO       Saved history  \u2192 C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\pcb2_history.jsonl
+20:11:17  INFO       Saved training curves \u2192 C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\pcb2_training_curves.png
+20:11:17  INFO       Evaluating on test split...
+20:16:03  INFO       Saved score distribution \u2192 C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\pcb2_score_distribution.png
+C:\Users\saumi\Desktop\CODES\parllex\Parallax\.venv\Lib\site-packages\sklearn\metrics\_ranking.py:1364: UndefinedMetricWarning: No positive samples in y_true, true positive value should be meaningless
+  warnings.warn(
+C:\Users\saumi\Desktop\CODES\parllex\Parallax\.venv\Lib\site-packages\sklearn\metrics\_ranking.py:469: UndefinedMetricWarning: Only one class is present in y_true. ROC AUC score is not defined in that case.
+  warnings.warn(
+C:\Users\saumi\Desktop\CODES\parllex\Parallax\.venv\Lib\site-packages\sklearn\metrics\_ranking.py:1192: UserWarning: No positive class found in y_true, recall is set to one for all thresholds.
+  warnings.warn(
+C:\Users\saumi\Desktop\CODES\parllex\Parallax\.venv\Lib\site-packages\sklearn\metrics\_ranking.py:1192: UserWarning: No positive class found in y_true, recall is set to one for all thresholds.
+  warnings.warn(
+C:\Users\saumi\Desktop\CODES\parllex\Parallax\scripts\train_bsf.py:291: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  plt.tight_layout()
+C:\Users\saumi\Desktop\CODES\parllex\Parallax\scripts\train_bsf.py:293: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  plt.savefig(path, dpi=150)
+20:45:23  INFO       Saved ROC/PR curves \u2192 C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\pcb2_roc_pr.png
+20:45:23  INFO       img AUROC=0.7127  img AP=0.7014
+20:45:23  INFO       pix AUROC=None  AUPRO=0.0
+20:45:23  INFO       Saved metrics  \u2192 C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\pcb2_metrics.json
+20:45:24  INFO     ============================================================
+20:45:24  INFO     CLASS: pcb3
+20:45:24  INFO     ============================================================
+20:45:24  INFO       Train normals : 80
+20:45:24  INFO       Test samples  : 201
+20:45:24  INFO       Extracting training features...
+  25/80 frames
+  50/80 frames
+  75/80 frames
+  80/80 frames
+20:45:49  INFO       Feature extraction: 25.0s
+20:45:58  INFO       Subsampling 846,720 \u2192 500,000 patches for RAM budget
+20:46:03  INFO       Training tensor: (500000, 768)  (500,000 patches ╫ 768 dims)
+20:46:03  INFO       Training GrassmannianBSF  n_groups=512 epochs=40...
+epoch   1/40   loss=0.5434   R2=0.6016   L0=16.0   dead=8/512
+epoch   4/40   loss=0.0952   R2=0.8453   L0=16.0   dead=0/512
+epoch   8/40   loss=0.0745   R2=0.8737   L0=16.0   dead=1/512
+epoch  12/40   loss=0.0683   R2=0.8833   L0=16.0   dead=0/512
+epoch  16/40   loss=0.0654   R2=0.8882   L0=16.0   dead=1/512
+epoch  20/40   loss=0.0637   R2=0.8903   L0=16.0   dead=3/512
+epoch  24/40   loss=0.0627   R2=0.8917   L0=16.0   dead=0/512
+epoch  28/40   loss=0.0621   R2=0.8936   L0=16.0   dead=5/512
+epoch  32/40   loss=0.0617   R2=0.8940   L0=16.0   dead=4/512
+epoch  36/40   loss=0.0615   R2=0.8940   L0=16.0   dead=3/512
+epoch  40/40   loss=0.0615   R2=0.8946   L0=16.0   dead=4/512
+21:51:25  INFO       Training complete in 3922.0s
+21:51:39  INFO       Final  R2=0.8941  L0=16.0  dead=0
+21:51:40  INFO       Saved weights \u2192 C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\bsf\pcb3.pt
+21:51:40  INFO       Saved history  \u2192 C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\pcb3_history.jsonl
+21:51:42  INFO       Saved training curves \u2192 C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\pcb3_training_curves.png
+21:51:42  INFO       Evaluating on test split...
+07:15:05  INFO     ============================================================
+07:15:05  INFO     Starting BSF run (classes: ['pcb3', 'pcb4', 'capsules', 'candle'], resume=True)
+07:15:05  INFO     ============================================================
+07:15:05  INFO     Loading VisA index...
+07:15:05  INFO       6218 samples indexed
+07:15:05  INFO     Loading backbone runner...
+07:15:38  INFO     HTTP Request: GET https://huggingface.co/api/agent-harnesses "HTTP/1.1 200 OK"
+07:15:39  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+07:15:39  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
+07:15:39  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+07:15:40  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
+07:15:40  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/config.json "HTTP/1.1 200 OK"
+07:15:41  INFO       facebook/dinov3-vitb16-pretrain-lvd1689m | device=cuda dtype=torch.bfloat16 | tile=224 grid=14x14 patches/tile=196 dim=768
+07:15:41  INFO     Loading pos_mean from C:\Users\saumi\Desktop\CODES\parllex\Parallax\vendor\block-sparse-featurizer\bsf\pos_mean.npy...
+07:15:41  INFO     ============================================================
+07:15:41  INFO     CLASS: pcb3
+07:15:41  INFO     ============================================================
+07:15:41  INFO       Train normals : 80
+07:15:41  INFO       Test samples  : 201
+07:15:41  INFO       [Resume] Found existing weights at C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\bsf\pcb3.pt, loading and skipping training...
+07:15:41  INFO       Evaluating on test split...
+07:17:34  INFO       Saved score distribution → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\pcb3_score_distribution.png
+08:15:52  INFO     ============================================================
+08:15:52  INFO     Starting BSF run (classes: ['pcb3'], resume=True)
+08:15:52  INFO     ============================================================
+08:15:52  INFO     Loading VisA index...
+08:15:52  INFO       6218 samples indexed
+08:15:52  INFO     Loading backbone runner...
+08:15:57  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+08:15:57  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
+08:15:58  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+08:15:58  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
+08:15:58  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/config.json "HTTP/1.1 200 OK"
+08:15:59  INFO       facebook/dinov3-vitb16-pretrain-lvd1689m | device=cuda dtype=torch.bfloat16 | tile=224 grid=14x14 patches/tile=196 dim=768
+08:15:59  INFO     Loading pos_mean from C:\Users\saumi\Desktop\CODES\parllex\Parallax\vendor\block-sparse-featurizer\bsf\pos_mean.npy...
+08:15:59  INFO     ============================================================
+08:15:59  INFO     CLASS: pcb3
+08:15:59  INFO     ============================================================
+08:15:59  INFO       Train normals : 80
+08:15:59  INFO       Test samples  : 201
+08:15:59  INFO       [Resume] Found existing weights at C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\bsf\pcb3.pt, loading and skipping training...
+08:15:59  INFO       Evaluating on test split...
+08:17:50  INFO       Saved score distribution → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\pcb3_score_distribution.png
+08:19:39  INFO       Saved ROC/PR curves → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\pcb3_roc_pr.png
+08:19:39  INFO       img AUROC=0.8275  img AP=0.8032
+08:19:39  INFO       pix AUROC=0.9783  AUPRO=0.8816
+08:19:39  INFO       Saved metrics  → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\pcb3_metrics.json
+08:20:27  INFO     ============================================================
+08:20:27  INFO     Starting BSF run (classes: ['pcb4', 'capsules', 'candle'], resume=True)
+08:20:27  INFO     ============================================================
+08:20:27  INFO     Loading VisA index...
+08:20:27  INFO       6218 samples indexed
+08:20:27  INFO     Loading backbone runner...
+08:20:31  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+08:20:31  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
+08:20:32  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+08:20:32  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
+08:20:32  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/config.json "HTTP/1.1 200 OK"
+08:20:33  INFO       facebook/dinov3-vitb16-pretrain-lvd1689m | device=cuda dtype=torch.bfloat16 | tile=224 grid=14x14 patches/tile=196 dim=768
+08:20:33  INFO     Loading pos_mean from C:\Users\saumi\Desktop\CODES\parllex\Parallax\vendor\block-sparse-featurizer\bsf\pos_mean.npy...
+08:20:33  INFO     ============================================================
+08:20:33  INFO     CLASS: pcb4
+08:20:33  INFO     ============================================================
+08:20:33  INFO       Train normals : 80
+08:20:33  INFO       Test samples  : 201
+08:20:33  INFO       Extracting training features...
+08:20:46  INFO       Feature extraction: 13.4s
+08:20:49  INFO       Subsampling 878,080 → 500,000 patches for RAM budget
+08:20:51  INFO       Training tensor: (500000, 768)  (500,000 patches × 768 dims)
+08:20:51  INFO       Training GrassmannianBSF  n_groups=512 epochs=40...
+08:40:24  INFO       Training complete in 1173.5s
+08:40:36  INFO       Final  R2=0.9060  L0=16.0  dead=0
+08:40:36  INFO       Saved weights → C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\bsf\pcb4.pt
+08:40:36  INFO       Saved history  → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\pcb4_history.jsonl
+08:40:36  INFO       Saved training curves → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\pcb4_training_curves.png
+08:40:36  INFO       Evaluating on test split...
+08:42:34  INFO       Saved score distribution → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\pcb4_score_distribution.png
+08:44:24  INFO       Saved ROC/PR curves → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\pcb4_roc_pr.png
+08:44:24  INFO       img AUROC=0.9068  img AP=0.8069
+08:44:24  INFO       pix AUROC=0.9571  AUPRO=0.8051
+08:44:24  INFO       Saved metrics  → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\pcb4_metrics.json
+08:44:24  INFO     ============================================================
+08:44:24  INFO     CLASS: capsules
+08:44:24  INFO     ============================================================
+08:44:24  INFO       Train normals : 80
+08:44:24  INFO       Test samples  : 160
+08:44:24  INFO       Extracting training features...
+08:44:37  INFO       Feature extraction: 13.1s
+08:44:40  INFO       Subsampling 846,720 → 500,000 patches for RAM budget
+08:44:42  INFO       Training tensor: (500000, 768)  (500,000 patches × 768 dims)
+08:44:42  INFO       Training GrassmannianBSF  n_groups=512 epochs=40...
+09:02:36  INFO       Training complete in 1074.3s
+09:02:48  INFO       Final  R2=0.8674  L0=16.0  dead=0
+09:02:48  INFO       Saved weights → C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\bsf\capsules.pt
+09:02:48  INFO       Saved history  → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\capsules_history.jsonl
+09:02:49  INFO       Saved training curves → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\capsules_training_curves.png
+09:02:49  INFO       Evaluating on test split...
+09:04:20  INFO       Saved score distribution → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\capsules_score_distribution.png
+09:06:10  INFO       Saved ROC/PR curves → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\capsules_roc_pr.png
+09:06:10  INFO       img AUROC=0.6908  img AP=0.8021
+09:06:10  INFO       pix AUROC=0.9872  AUPRO=0.9336
+09:06:10  INFO       Saved metrics  → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\capsules_metrics.json
+09:06:10  INFO     ============================================================
+09:06:10  INFO     CLASS: candle
+09:06:10  INFO     ============================================================
+09:06:10  INFO       Train normals : 80
+09:06:10  INFO       Test samples  : 200
+09:06:10  INFO       Extracting training features...
+09:06:24  INFO       Feature extraction: 13.4s
+09:06:27  INFO       Subsampling 878,080 → 500,000 patches for RAM budget
+09:06:28  INFO       Training tensor: (500000, 768)  (500,000 patches × 768 dims)
+09:06:28  INFO       Training GrassmannianBSF  n_groups=512 epochs=40...
+09:24:28  INFO       Training complete in 1079.4s
+09:24:40  INFO       Final  R2=0.8844  L0=16.0  dead=0
+09:24:40  INFO       Saved weights → C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\bsf\candle.pt
+09:24:40  INFO       Saved history  → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\candle_history.jsonl
+09:24:41  INFO       Saved training curves → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\candle_training_curves.png
+09:24:41  INFO       Evaluating on test split...
+09:26:35  INFO       Saved score distribution → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\candle_score_distribution.png
+09:28:26  INFO       Saved ROC/PR curves → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\candle_roc_pr.png
+09:28:26  INFO       img AUROC=0.9404  img AP=0.9341
+09:28:26  INFO       pix AUROC=0.9932  AUPRO=0.9546
+09:28:26  INFO       Saved metrics  → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\candle_metrics.json
+10:15:24  INFO     ============================================================
+10:15:24  INFO     Starting BSF run (classes: ['pcb1', 'pcb2'], resume=True)
+10:15:24  INFO     ============================================================
+10:15:24  INFO     Loading VisA index...
+10:15:25  INFO       6218 samples indexed
+10:15:25  INFO     Loading backbone runner...
+10:15:31  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+10:15:31  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
+10:15:31  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+10:15:31  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
+10:15:32  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/config.json "HTTP/1.1 200 OK"
+10:15:32  INFO       facebook/dinov3-vitb16-pretrain-lvd1689m | device=cuda dtype=torch.bfloat16 | tile=224 grid=14x14 patches/tile=196 dim=768
+10:15:32  INFO     Loading pos_mean from C:\Users\saumi\Desktop\CODES\parllex\Parallax\vendor\block-sparse-featurizer\bsf\pos_mean.npy...
+10:15:32  INFO     ============================================================
+10:15:32  INFO     CLASS: pcb1
+10:15:32  INFO     ============================================================
+10:15:32  INFO       Train normals : 80
+10:15:32  INFO       Test samples  : 200
+10:15:32  INFO       [Resume] Found existing weights at C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\bsf\pcb1.pt, loading and skipping training...
+10:15:32  INFO       Evaluating on test split...
+10:17:49  INFO       Saved score distribution → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\pcb1_score_distribution.png
+10:19:47  INFO       Saved ROC/PR curves → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\pcb1_roc_pr.png
+10:19:47  INFO       img AUROC=0.8928  img AP=0.8836
+10:19:47  INFO       pix AUROC=0.9948  AUPRO=0.9083
+10:19:47  INFO       Saved metrics  → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\pcb1_metrics.json
+10:19:47  INFO     ============================================================
+10:19:47  INFO     CLASS: pcb2
+10:19:47  INFO     ============================================================
+10:19:47  INFO       Train normals : 80
+10:19:47  INFO       Test samples  : 200
+10:19:47  INFO       [Resume] Found existing weights at C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\bsf\pcb2.pt, loading and skipping training...
+10:19:47  INFO       Evaluating on test split...
+10:22:03  INFO       Saved score distribution → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\pcb2_score_distribution.png
+10:24:02  INFO       Saved ROC/PR curves → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\plots\pcb2_roc_pr.png
+10:24:02  INFO       img AUROC=0.7127  img AP=0.7014
+10:24:02  INFO       pix AUROC=0.9705  AUPRO=0.833
+10:24:02  INFO       Saved metrics  → C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\bsf\pcb2_metrics.json

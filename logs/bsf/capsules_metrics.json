@@ -1,0 +1,16 @@
+{
+  "class": "capsules",
+  "train_normals": 80,
+  "test_samples": 160,
+  "train_time_s": 1074.3,
+  "final_r2": 0.8674,
+  "final_l0": 16.0,
+  "dead_blocks": 0,
+  "img_auroc": 0.6908,
+  "img_ap": 0.8021,
+  "img_f1_best": 0.7773,
+  "pix_auroc": 0.9872,
+  "pix_ap": 0.3977,
+  "pix_f1_best": 0.4864,
+  "aupro": 0.9336
+}

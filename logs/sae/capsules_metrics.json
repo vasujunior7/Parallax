@@ -1,0 +1,19 @@
+{
+  "class": "capsules",
+  "model": "sae",
+  "d_sae": 1536,
+  "k": 16,
+  "train_normals": 80,
+  "test_samples": 160,
+  "train_time_s": 52.0,
+  "img_auroc": 0.6928,
+  "img_ap": 0.8044,
+  "img_f1_best": 0.7721,
+  "pix_auroc": 0.9861,
+  "pix_ap": 0.4259,
+  "pix_f1_best": 0.5057,
+  "aupro": 0.9277,
+  "subspace_k95": 65,
+  "subspace_elbow": 21,
+  "var_at_k16": 0.4904
+}

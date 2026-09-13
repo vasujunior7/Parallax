@@ -1,0 +1,16 @@
+{
+  "class": "pcb2",
+  "train_normals": 80,
+  "test_samples": 200,
+  "train_time_s": 0.0,
+  "final_r2": 0.9124,
+  "final_l0": 16.0,
+  "dead_blocks": 4,
+  "img_auroc": 0.7127,
+  "img_ap": 0.7014,
+  "img_f1_best": 0.7155,
+  "pix_auroc": 0.9705,
+  "pix_ap": 0.3789,
+  "pix_f1_best": 0.4573,
+  "aupro": 0.833
+}

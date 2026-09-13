@@ -1,0 +1,74 @@
+[
+  {
+    "class": "pcb1",
+    "probe_auroc": 0.958,
+    "bsf_img_auroc": 0.8928,
+    "sae_img_auroc": 0.8892,
+    "bsf_pix_auroc": 0.9948,
+    "sae_pix_auroc": 0.9939,
+    "bsf_aupro": 0.9083,
+    "sae_aupro": 0.8935,
+    "sae_k95": 65,
+    "sae_var_k16": 0.4662
+  },
+  {
+    "class": "pcb2",
+    "probe_auroc": 0.73,
+    "bsf_img_auroc": 0.7127,
+    "sae_img_auroc": 0.6882,
+    "bsf_pix_auroc": 0.9705,
+    "sae_pix_auroc": 0.9649,
+    "bsf_aupro": 0.833,
+    "sae_aupro": 0.8084,
+    "sae_k95": 65,
+    "sae_var_k16": 0.5691
+  },
+  {
+    "class": "pcb3",
+    "probe_auroc": 0.835,
+    "bsf_img_auroc": 0.8275,
+    "sae_img_auroc": 0.8144,
+    "bsf_pix_auroc": 0.9783,
+    "sae_pix_auroc": 0.9743,
+    "bsf_aupro": 0.8816,
+    "sae_aupro": 0.8625,
+    "sae_k95": 65,
+    "sae_var_k16": 0.4714
+  },
+  {
+    "class": "pcb4",
+    "probe_auroc": 0.883,
+    "bsf_img_auroc": 0.9068,
+    "sae_img_auroc": 0.8853,
+    "bsf_pix_auroc": 0.9571,
+    "sae_pix_auroc": 0.9533,
+    "bsf_aupro": 0.8051,
+    "sae_aupro": 0.7967,
+    "sae_k95": 65,
+    "sae_var_k16": 0.5369
+  },
+  {
+    "class": "capsules",
+    "probe_auroc": 0.901,
+    "bsf_img_auroc": 0.6908,
+    "sae_img_auroc": 0.6928,
+    "bsf_pix_auroc": 0.9872,
+    "sae_pix_auroc": 0.9861,
+    "bsf_aupro": 0.9336,
+    "sae_aupro": 0.9277,
+    "sae_k95": 65,
+    "sae_var_k16": 0.4904
+  },
+  {
+    "class": "candle",
+    "probe_auroc": 0.848,
+    "bsf_img_auroc": 0.9404,
+    "sae_img_auroc": 0.9391,
+    "bsf_pix_auroc": 0.9932,
+    "sae_pix_auroc": 0.9924,
+    "bsf_aupro": 0.9546,
+    "sae_aupro": 0.9586,
+    "sae_k95": 65,
+    "sae_var_k16": 0.4285
+  }
+]

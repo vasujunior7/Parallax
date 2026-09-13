@@ -1,0 +1,53 @@
+23:03:45  INFO     ============================================================
+23:03:45  INFO     Parallax agent run  classes=['pcb1', 'pcb2', 'pcb3', 'pcb4', 'capsules', 'candle']
+23:03:45  INFO     Config: OOD>=8.0->relook  OOD>=14.0->esc  BSF>=0.150->relook  BSF>=0.250->esc  retries=2
+23:03:45  INFO     ============================================================
+23:03:46  INFO     6218 samples indexed
+23:03:46  INFO     Loading backbone runner...
+23:04:34  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+23:04:34  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
+23:04:34  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+23:04:34  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/preprocessor_config.json "HTTP/1.1 200 OK"
+23:04:35  INFO     HTTP Request: HEAD https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m/resolve/main/config.json "HTTP/1.1 200 OK"
+23:04:36  INFO       facebook/dinov3-vitb16-pretrain-lvd1689m | device=cuda dtype=torch.bfloat16 | tile=224 grid=14x14 patches/tile=196 dim=768
+23:04:36  INFO     ============================================================
+23:04:36  INFO     CLASS: pcb1
+23:04:36  INFO     ============================================================
+23:04:36  INFO       Loading BSF from C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\bsf\pcb1.pt
+23:04:36  INFO       Loading golden reference from C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\references\pcb1.npz
+23:04:36  INFO       [Probe] Fitting from scratch (no cache at C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\probes\pcb1.npz)
+23:05:02  INFO       [Probe] Saved to C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\probes\pcb1.npz
+23:05:03  INFO       Test frames: 200
+23:28:24  INFO       ACCEPT=0  RELOOK=0  ESCALATE=200
+23:28:24  INFO       Sensitivity(anomaly→ESC)=1.000  Specificity(normal→ACC)=0.000  FalseEsc=1.000
+23:28:25  INFO       Saved score plot -> C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\agent\plots\pcb1_score_scatter.png
+23:28:25  INFO     ============================================================
+23:28:25  INFO     CLASS: pcb2
+23:28:25  INFO     ============================================================
+23:28:25  INFO       Loading BSF from C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\bsf\pcb2.pt
+23:28:25  INFO       Loading golden reference from C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\references\pcb2.npz
+23:28:25  INFO       [Probe] Fitting from scratch (no cache at C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\probes\pcb2.npz)
+23:28:50  INFO       [Probe] Saved to C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\probes\pcb2.npz
+23:28:50  INFO       Test frames: 200
+23:51:28  INFO       ACCEPT=0  RELOOK=0  ESCALATE=200
+23:51:28  INFO       Sensitivity(anomaly→ESC)=1.000  Specificity(normal→ACC)=0.000  FalseEsc=1.000
+23:51:28  INFO       Saved score plot -> C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\agent\plots\pcb2_score_scatter.png
+23:51:28  INFO     ============================================================
+23:51:28  INFO     CLASS: pcb3
+23:51:28  INFO     ============================================================
+23:51:28  INFO       Loading BSF from C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\bsf\pcb3.pt
+23:51:28  INFO       Loading golden reference from C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\references\pcb3.npz
+23:51:28  INFO       [Probe] Fitting from scratch (no cache at C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\probes\pcb3.npz)
+23:51:49  INFO       [Probe] Saved to C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\probes\pcb3.npz
+23:51:49  INFO       Test frames: 200
+00:20:42  INFO       ACCEPT=0  RELOOK=0  ESCALATE=200
+00:20:42  INFO       Sensitivity(anomaly→ESC)=1.000  Specificity(normal→ACC)=0.000  FalseEsc=1.000
+00:20:43  INFO       Saved score plot -> C:\Users\saumi\Desktop\CODES\parllex\Parallax\logs\agent\plots\pcb3_score_scatter.png
+00:20:43  INFO     ============================================================
+00:20:43  INFO     CLASS: pcb4
+00:20:43  INFO     ============================================================
+00:20:43  INFO       Loading BSF from C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\bsf\pcb4.pt
+00:20:43  INFO       Loading golden reference from C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\references\pcb4.npz
+00:20:43  INFO       [Probe] Fitting from scratch (no cache at C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\probes\pcb4.npz)
+00:22:23  INFO       [Probe] Saved to C:\Users\saumi\Desktop\CODES\parllex\Parallax\data\probes\pcb4.npz
+00:22:24  INFO       Test frames: 200
