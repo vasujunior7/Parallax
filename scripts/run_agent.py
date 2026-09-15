@@ -368,10 +368,9 @@ def plot_escalation_curve(store: TraceStore, config: AgentConfig, out_dir: Path)
         return
 
     ood_vals = np.array([r["ood_score"] for r in rows])
-    is_anml  = np.array([r["vision_is_defective"] for r in rows], dtype=bool)
-    # Use vision label as proxy for ground truth (defective frame = anomaly)
-    # A more rigorous sweep uses the VisA is_anomalous flag written into frame_id;
-    # here we use vision_is_defective as an approximation for the curve shape.
+    is_anml  = np.array(["anomaly" in (r.get("frame_id") or "").lower() for r in rows], dtype=bool)
+    if is_anml.sum() == 0:
+        is_anml = np.array([r["vision_is_defective"] for r in rows], dtype=bool)
 
     thresholds = np.percentile(ood_vals, np.linspace(0, 100, 200))
     sens_list, fpr_list = [], []
